@@ -51,8 +51,13 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "{5cce4ab5-3d47-41b9-af5e-8203eea05245}",
-      "strict_min_version": "121.0"
+      "id": "control-panel-for-twitter@moustafamin1",
+      "strict_min_version": "121.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
     },
     "gecko_android": {
       "strict_min_version": "121.0"
