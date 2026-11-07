@@ -383,6 +383,12 @@
   "preventNextVideoAutoplayLabel": {
     "message": "Impedisci la riproduzione automatica del prossimo video"
   },
+  "preventVideoDoomScrollInfo": {
+    "message": "Disabilita lo scorrimento e la riproduzione automatica ai video successivi nel visualizzatore multimediale"
+  },
+  "preventVideoDoomScrollLabel": {
+    "message": "Impedisci lo scorrimento infinito dei video brevi"
+  },
   "quoteTweetsLabel": {
     "message": "Tweet di citazione"
   },

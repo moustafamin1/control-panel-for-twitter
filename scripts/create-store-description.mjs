@@ -58,6 +58,7 @@ ${messages.homeTimelineOptionsLabel}:
 ${messages.uiImprovementsOptionsLabel}:
 
 • ${messages.preventNextVideoAutoplayLabel}${messages.mobileVersion}
+• ${messages.preventVideoDoomScrollLabel}${messages.mobileVersion}
 • ${messages.addAddMutedWordMenuItemLabel_desktop}
 • ${messages.fastBlockLabel}
 • ${messages.hideUnavailableQuoteTweetsLabel}

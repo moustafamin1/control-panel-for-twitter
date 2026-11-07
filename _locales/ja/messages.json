@@ -383,6 +383,12 @@
   "preventNextVideoAutoplayLabel": {
     "message": "次の動画の自動再生を防ぐ"
   },
+  "preventVideoDoomScrollInfo": {
+    "message": "メディアビューアでの次の動画へのスワイプと自動連続再生を無効化します"
+  },
+  "preventVideoDoomScrollLabel": {
+    "message": "ショート動画の無限スクロールを防ぐ"
+  },
   "quoteTweetsLabel": {
     "message": "引用ツイート"
   },

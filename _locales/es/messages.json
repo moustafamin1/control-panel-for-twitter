@@ -383,6 +383,12 @@
   "preventNextVideoAutoplayLabel": {
     "message": "Evitar la reproducción automática del siguiente video"
   },
+  "preventVideoDoomScrollInfo": {
+    "message": "Desactiva el deslizamiento y la reproducción automática a los siguientes videos en el visor multimedia"
+  },
+  "preventVideoDoomScrollLabel": {
+    "message": "Evitar el desplazamiento infinito de videos cortos"
+  },
   "quoteTweetsLabel": {
     "message": "Citados"
   },

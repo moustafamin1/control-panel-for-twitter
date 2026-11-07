@@ -392,6 +392,12 @@
   "preventNextVideoAutoplayLabel": {
     "message": "防止下一个视频自动播放"
   },
+  "preventVideoDoomScrollInfo": {
+    "message": "在媒体查看器中禁用滑动到后续视频和自动连播"
+  },
+  "preventVideoDoomScrollLabel": {
+    "message": "防止短视频无限滑动"
+  },
   "quoteTweetsLabel": {
     "message": "引用推文"
   },

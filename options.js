@@ -124,6 +124,8 @@ for (let translationId of [
   'navDensityLabel',
   'preventNextVideoAutoplayInfo',
   'preventNextVideoAutoplayLabel',
+  'preventVideoDoomScrollInfo',
+  'preventVideoDoomScrollLabel',
   'quoteTweetsLabel',
   'reduceAlgorithmicContentOptionsLabel',
   'reduceEngagementOptionsLabel',
@@ -321,6 +323,7 @@ const defaultConfig = {
   hideLiveBroadcastBar: false,
   hideMessagesBottomNavItem: false,
   preventNextVideoAutoplay: true,
+  preventVideoDoomScroll: true,
 }
 //#endregion
 

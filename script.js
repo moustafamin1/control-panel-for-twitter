@@ -234,6 +234,7 @@ const config = {
   hideLiveBroadcastBar: false,
   hideMessagesBottomNavItem: false,
   preventNextVideoAutoplay: true,
+  preventVideoDoomScroll: true,
 }
 //#endregion
 
@@ -5184,6 +5185,21 @@ const configureCss = (() => {
           'body:is(.MediaViewer, .MobileMedia) [role="group"] > div:has(> a[href$="/analytics"])',
         )
       }
+      if (config.preventVideoDoomScroll) {
+        cssRules.push(`
+          [data-testid="vss-scroll-view"],
+          [data-testid="vss-scroll-view"] > div {
+            overflow: hidden !important;
+            overflow-y: hidden !important;
+            touch-action: pan-x pinch-zoom !important;
+            overscroll-behavior: none !important;
+            scroll-snap-type: none !important;
+          }
+          [data-testid="vss-scroll-view"] > div > div:not(:first-child) {
+            display: none !important;
+          }
+        `)
+      }
     }
     //#endregion
 
@@ -6812,7 +6828,8 @@ function processCurrentPage(route = getCurrentRoute()) {
   $body.classList.toggle('Search', isOnSearchPage())
   $body.classList.toggle('Settings', isOnSettingsPage())
   $body.classList.toggle('MobileMedia', mobile && URL_MEDIA_RE.test(location.pathname))
-  $body.classList.toggle('MediaViewer', mobile && URL_MEDIAVIEWER_RE.test(location.pathname))
+  $body.classList.toggle('MediaViewer', mobile && (URL_MEDIAVIEWER_RE.test(location.pathname) || URL_MEDIA_RE.test(location.pathname)))
+  $body.classList.toggle('PreventVideoDoomScroll', Boolean(config.preventVideoDoomScroll))
   $body.classList.toggle('ComposeTweetPage', mobile && isOnComposeTweetPage())
   // Always remove this as it's a fake page
   $body.classList.remove('SeparatedTweets')
@@ -6901,7 +6918,7 @@ function processCurrentPage(route = getCurrentRoute()) {
     if (isOnComposeTweetPage()) {
       tweakMobileComposeTweetPage()
     }
-    else if (URL_MEDIAVIEWER_RE.test(lastUrlPath)) {
+    else if (URL_MEDIAVIEWER_RE.test(lastUrlPath) || URL_MEDIA_RE.test(lastUrlPath)) {
       tweakMobileMediaViewerPage()
     }
     else if (lastUrlPath.startsWith(PagePaths.PROFILE_SETTINGS)) {
@@ -7691,14 +7708,105 @@ async function tweakMobileComposeTweetPage() {
 async function tweakMobileMediaViewerPage() {
   let $timeline = await getElement('[data-testid="vss-scroll-view"] > div', {
     name: 'media viewer timeline',
-    stopIf: () => !URL_MEDIAVIEWER_RE.test(location.pathname),
+    stopIf: () => !URL_MEDIAVIEWER_RE.test(location.pathname) && !URL_MEDIA_RE.test(location.pathname),
   })
   if (!$timeline) return
 
+  let $scrollView = /** @type {HTMLElement} */ ($timeline.parentElement)
+
+  if (config.preventVideoDoomScroll && $scrollView) {
+    $scrollView.style.setProperty('overflow', 'hidden', 'important')
+    $scrollView.style.setProperty('overflow-y', 'hidden', 'important')
+    $scrollView.style.setProperty('touch-action', 'pan-x pinch-zoom', 'important')
+    $scrollView.style.setProperty('overscroll-behavior', 'none', 'important')
+    $scrollView.style.setProperty('scroll-snap-type', 'none', 'important')
+
+    $timeline.style.setProperty('overflow', 'hidden', 'important')
+    $timeline.style.setProperty('overflow-y', 'hidden', 'important')
+    $timeline.style.setProperty('touch-action', 'pan-x pinch-zoom', 'important')
+
+    let startY = 0
+    let startX = 0
+    let onTouchStart = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        startY = e.touches[0].clientY
+        startX = e.touches[0].clientX
+      }
+    }
+
+    let onTouchMove = (e) => {
+      if (!config.preventVideoDoomScroll) return
+      if (e.touches && e.touches.length > 0) {
+        let deltaY = Math.abs(e.touches[0].clientY - startY)
+        let deltaX = Math.abs(e.touches[0].clientX - startX)
+        if (deltaY > deltaX || deltaY > 6) {
+          e.stopPropagation()
+          if (e.cancelable) e.preventDefault()
+        }
+      }
+    }
+
+    let onWheel = (e) => {
+      if (!config.preventVideoDoomScroll) return
+      if (Math.abs(e.deltaY) > 0) {
+        e.stopPropagation()
+        if (e.cancelable) e.preventDefault()
+      }
+    }
+
+    let onKeyDown = (e) => {
+      if (!config.preventVideoDoomScroll) return
+      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp'].includes(e.key || e.code)) {
+        e.stopPropagation()
+        if (e.cancelable) e.preventDefault()
+      }
+    }
+
+    $scrollView.addEventListener('touchstart', onTouchStart, {passive: true, capture: true})
+    $scrollView.addEventListener('touchmove', onTouchMove, {passive: false, capture: true})
+    $scrollView.addEventListener('wheel', onWheel, {passive: false, capture: true})
+    window.addEventListener('keydown', onKeyDown, {capture: true})
+
+    let scrollPreventionName = 'media viewer scroll prevention'
+    pageObservers.set(scrollPreventionName, {
+      name: scrollPreventionName,
+      disconnect() {
+        $scrollView.removeEventListener('touchstart', onTouchStart, {capture: true})
+        $scrollView.removeEventListener('touchmove', onTouchMove, {capture: true})
+        $scrollView.removeEventListener('wheel', onWheel, {capture: true})
+        window.removeEventListener('keydown', onKeyDown, {capture: true})
+        pageObservers.delete(scrollPreventionName)
+      },
+    })
+
+    // Prune existing subsequent video containers
+    let children = Array.from($timeline.children)
+    for (let i = 1; i < children.length; i++) {
+      children[i].remove()
+    }
+  }
+
   /** @param {HTMLVideoElement} $video */
   function processVideo($video) {
-    if ($video.loop != config.preventNextVideoAutoplay) {
-      $video.loop = config.preventNextVideoAutoplay
+    let shouldLoop = config.preventVideoDoomScroll || config.preventNextVideoAutoplay
+    if (shouldLoop) {
+      if (!$video.loop) {
+        $video.loop = true
+      }
+      $video.setAttribute('loop', 'true')
+      if (!$video.dataset.cpftLoopHandler) {
+        $video.dataset.cpftLoopHandler = 'true'
+        $video.addEventListener('ended', (e) => {
+          if (config.preventVideoDoomScroll || config.preventNextVideoAutoplay) {
+            e.stopPropagation()
+            $video.currentTime = 0
+            $video.play().catch(() => {})
+          }
+        }, {capture: true})
+      }
+    } else if ($video.loop) {
+      $video.loop = false
+      $video.removeAttribute('loop')
     }
   }
 
@@ -7714,6 +7822,13 @@ async function tweakMobileMediaViewerPage() {
     for (let mutation of mutations) {
       for (let $addedNode of mutation.addedNodes) {
         if (!($addedNode instanceof HTMLElement) || $addedNode.nodeName != 'DIV') continue
+
+        // Discard subsequent video recommendations in the scroll view
+        if (config.preventVideoDoomScroll && $addedNode !== $timeline.firstElementChild) {
+          $addedNode.remove()
+          continue
+        }
+
         let $video = $addedNode.querySelector('video')
         if ($video) {
           processVideo($video)

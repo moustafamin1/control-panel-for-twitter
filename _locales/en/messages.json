@@ -389,6 +389,12 @@
   "preventNextVideoAutoplayLabel": {
     "message": "Prevent next video autoplaying"
   },
+  "preventVideoDoomScrollInfo": {
+    "message": "Disable swiping and auto-advancing to subsequent videos in the media viewer"
+  },
+  "preventVideoDoomScrollLabel": {
+    "message": "Prevent short video doom scrolling"
+  },
   "quoteTweetsLabel": {
     "message": "Quote Tweets"
   },

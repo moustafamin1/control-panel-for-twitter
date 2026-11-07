@@ -121,6 +121,7 @@ export type Config = {
   hideLiveBroadcastBar: boolean
   hideMessagesBottomNavItem: boolean
   preventNextVideoAutoplay: boolean
+  preventVideoDoomScroll: boolean
 }
 
 export type Locale = {
